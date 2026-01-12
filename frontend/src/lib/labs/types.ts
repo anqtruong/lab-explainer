@@ -16,9 +16,19 @@ Qualitative Results:
 TODO: standardize units across different labs (e.g., mg/dL vs mmol/L)
 */ 
 
-type LabTest = {
+export type LabTest = {
     name: string;
     result: LabResult; 
+}
+
+export type FlaggedLabTest = {
+    test: LabTest;
+    flag: FlagStatus;
+    reason: string;
+}
+
+export type FlaggedLabReport = {
+    tests: FlaggedLabTest[];//array of flagged lab tests!
 }
 
 type LabResult = NumericResult | QualitativeResult;
@@ -30,6 +40,11 @@ type NumericResult = {
     range?: ReferenceRange;
 }
 
+//not all tests have reference ranges, hence we make it optional.
+type ReferenceRange = {
+    high?: number;
+    low?: number;
+}
 type QualitativeValue = "Positive" | "Negative" | "Detected" | "Not Detected";
 
 type QualitativeResult = {
@@ -37,8 +52,6 @@ type QualitativeResult = {
     value: QualitativeValue; //Positive or Negative
 }
 
-//not all tests have reference ranges, hence we make it optional.
-type ReferenceRange = {
-    high?: number;
-    low?: number;
-}
+
+
+export type FlagStatus = "HIGH" | "LOW" | "NORMAL" | "UNKNOWN";
