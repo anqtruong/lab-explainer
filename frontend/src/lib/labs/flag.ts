@@ -1,7 +1,6 @@
 //GOAL: Correctly flag lab test results based on reference ranges.
 /*
 
-For now, we will mark Qualitative results as UNKNOWN
 If numeric result has no reference range, we will also mark it as UNKNOWN
 
 If range exists:
@@ -13,12 +12,50 @@ If range has no bounds, we will mark it as UNKNOWN
 
 */
 //Import types LabTest and FlagStatus from types.ts
-import type {LabTest, FlagStatus, FlaggedLabReport, FlaggedLabTest} from "./types";
+import type {LabTest, FlagStatus, FlaggedLabReport, FlaggedLabTest, QualitativeType, QualitativeValue} from "./types";
+
+//Function to get qualitative result type from LabTest. This way, we can group qualitative results into Present/Absent/UNKNOWN at runtime.
+export function getQualitative(QualitativeValue: QualitativeValue): QualitativeType {
+
+    switch (QualitativeValue) {
+        case "Positive":
+        case "Detected":
+        case "Reactive":
+        case "Present":
+            return ("Present");
+        case "Negative":
+        case "Not Detected":
+        case "Non-Reactive":
+        case "Absent":
+            return ("Absent");
+        default:
+            return "UNKNOWN";
+
+    }
+
+}
 
 export function getFlagStatus(test: LabTest): FlagStatus {
 
     //LabTest is either qualitative or numeric
-    if (test.result.kind === "qualitative") return "UNKNOWN";
+
+    /*
+    Support for qualitative results. First adding support for the common binaries:
+
+    */
+
+
+    if (test.result.kind === "qualitative") {
+
+        const qualitativeType = getQualitative(test.result.value);
+        
+        if (qualitativeType === "Present") return test.result.value;
+        if (qualitativeType === "Absent") return test.result.value;
+
+        //If qualitative but type is unknown, return UNKNOWN
+        return "UNKNOWN";
+            
+    }
     
     //If this line is reached, test is numeric.
 
@@ -53,7 +90,21 @@ export function getReason(FlaggedTest: FlaggedLabTest): string {//TODO: clean up
 
     //TODO: add support for qualitative results
     //Reasoning for qualitative flag
-    if (FlaggedTest.test.result.kind === "qualitative") return "Qualitative result cannot be compared to a numeric reference range.";
+    if (FlaggedTest.test.result.kind === "qualitative") {
+//TODO: make better reasons
+        const qualitativeType = getQualitative(FlaggedTest.test.result.value);
+
+            if (qualitativeType === "Present") {
+                return `The test result is ${FlaggedTest.test.result.value}. This indicates the test detected its target.`;
+            }
+
+            if (qualitativeType === "Absent") {
+                return `The test result is ${FlaggedTest.test.result.value}. This indicates the test did not detect its target.`;
+            }
+
+            //If qualitative but type is unknown, return UNKNOWN
+            return "Unrecognized qualitative value; unable to determine as Present or Absent.";
+    }
 
     //If this line is reached, test is numeric.
     const range = FlaggedTest.test.result.range;

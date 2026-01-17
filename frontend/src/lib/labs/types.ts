@@ -31,9 +31,18 @@ export type FlaggedLabReport = {
     tests: FlaggedLabTest[];//array of flagged lab tests!
 }
 
-type LabResult = NumericResult | QualitativeResult;
+export type LabResult = QualitativeResult | NumericResult;
 
-type NumericResult = {
+type QualitativeResult = {
+    kind: "qualitative";
+    value: QualitativeValue;
+}
+export type QualitativeValue = Present | Absent | "UNKNOWN";
+export type QualitativeType = "Present" | "Absent" | "UNKNOWN";
+
+
+
+export type NumericResult = {
     kind: "numeric";
     value: number;
     unit: string;
@@ -41,17 +50,15 @@ type NumericResult = {
 }
 
 //not all tests have reference ranges, hence we make it optional.
-type ReferenceRange = {
+export type ReferenceRange = {
     high?: number;
     low?: number;
 }
-type QualitativeValue = "Positive" | "Negative" | "Detected" | "Not Detected";
-
-type QualitativeResult = {
-    kind: "qualitative";
-    value: QualitativeValue; //Positive or Negative
-}
 
 
 
-export type FlagStatus = "HIGH" | "LOW" | "NORMAL" | "UNKNOWN";
+export type FlagStatus = QualitativeFlag | NumericFlag;
+export type QualitativeFlag = Present | Absent | "UNKNOWN";
+export type Present = "Positive" | "Detected" | "Reactive" | "Present";
+export type Absent = "Negative" | "Not Detected" | "Non-Reactive" | "Absent";
+export type NumericFlag = "HIGH" | "LOW" | "NORMAL" | "UNKNOWN";
